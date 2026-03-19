@@ -18,7 +18,7 @@ async function extractText(filePath) {
   };
 }
 
-function parseMeetingMeta(meetingMeta) {
+export function parseMeetingMeta(meetingMeta) {
   const lines = meetingMeta.split('\n');
   const meta = lines[0].split('-');
 
@@ -34,10 +34,20 @@ function parseMeetingMeta(meetingMeta) {
 
   
   return {
-    title: meta[0],
+    title: meta[0].trim(),
     source: "teams",
     meeting_date: `${year}-${month}-${day}`
   }
+}
+
+export function chunkText(text, chunkSize = 1000) {
+  const chunks = [];
+
+  for (let i = 0; i < text.length; i += chunkSize) {
+    chunks.push(text.slice(i, i + chunkSize));
+  }
+
+  return chunks;
 }
 
 async function insertMeeting(meta, transcript) {
@@ -71,4 +81,6 @@ async function ingestMeetings() {
     }
 }
 
-ingestMeetings();
+if (process.argv[1].includes('ingest.js')) {
+  ingestMeetings();
+}

@@ -17,4 +17,7 @@ async function listMeetings() {
         });
 };
 
-listMeetings();
+
+if (process.argv[1].includes('listMeetings.js')) {
+    listMeetings();
+}
