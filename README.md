@@ -118,6 +118,16 @@ To list meetings from supabase you can run listMeetings script:
 npm run listMeetings
 ```
 
+## Run tests
+   
+You can run tests:
+
+```bash
+npm run test
+```
+
+
+
 ## Table schema
 
 <img alt="Databse schema" src="assets/supabase-schema.png">
