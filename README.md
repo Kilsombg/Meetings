@@ -78,13 +78,15 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
   ```env
   NEXT_PUBLIC_SUPABASE_URL=[INSERT SUPABASE PROJECT URL]
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=[INSERT SUPABASE PROJECT API PUBLISHABLE OR ANON KEY]
+  SUPABASE_SERVICE_ROLE_KEY=[INSERT SUPABASE SERVICE ROLE KEY]
   ```
   > [!NOTE]
   > This example uses `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, which refers to Supabase's new **publishable** key format.
   > Both legacy **anon** keys and new **publishable** keys can be used with this variable name during the transition period. Supabase's dashboard may show `NEXT_PUBLIC_SUPABASE_ANON_KEY`; its value can be used in this example.
   > See the [full announcement](https://github.com/orgs/supabase/discussions/29260) for more information.
 
-  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true)
+  Both `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` can be found in [your Supabase project's API settings](https://supabase.com/dashboard/project/_?showConnect=true).
+  `SUPABASE_SERVICE_ROLE_KEY` can be found in Api settings.
 
 5. You can now run the Next.js local development server:
 
@@ -97,6 +99,30 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
+
+## Run scripts
+
+1. ingest
+
+To insert meetings in supabase you have to include their transcripts in folder `app\transcripts`. You can run the script:
+
+```bash
+npm run ingest
+```
+
+2. lisstMeetings
+   
+To list meetings from supabase you can run listMeetings script:
+
+```bash
+npm run listMeetings
+```
+
+## Table schema
+
+<img alt="Databse schema" src="assets/supabase-schema.png">
+
+
 
 ## Feedback and issues
 
