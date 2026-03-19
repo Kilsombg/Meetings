@@ -4,7 +4,7 @@ import mammoth from 'mammoth';
 import {supabase} from './supabase.js';
 
 
-const MEETINGS_DIR = path.join(process.cwd(), "transcripts", "edamame");
+const MEETINGS_DIR = path.join(process.cwd(), "transcripts");
 
 async function extractText(filePath) {
   const rawText = (await mammoth.extractRawText({ path: filePath})).value;
