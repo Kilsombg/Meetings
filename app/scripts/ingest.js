@@ -10,7 +10,9 @@ async function extractText(filePath) {
   const rawText = (await mammoth.extractRawText({ path: filePath})).value;
   const splittedText = rawText.split('---');
 
-  if(splittedText.length < 2) return null;
+  if(splittedText.length < 2) {
+    return null;
+  }
 
   return {
     meta: splittedText[0], 
@@ -22,11 +24,12 @@ export function parseMeetingMeta(meetingMeta) {
   const lines = meetingMeta.split('\n');
   const meta = lines[0].split('-');
 
-  const time = meta[1].split(' ');
   const currentYear = new Date().getFullYear();
   let date = new Date(`${meta[1]} ${currentYear}`);
-
-  if(date > new Date()) date.setFullYear(date.getFullYear()-1);
+  
+  if(date > new Date()) {
+    date.setFullYear(date.getFullYear()-1);
+  }
 
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -60,22 +63,32 @@ async function insertMeeting(meta, transcript) {
       raw_transcript: transcript
     });
 
-    if(error) console.log('Insert error', error);
+    if(error) {
+      if(error.code === '23505') {
+        console.log('Duplicate meeting skipped.');
+      } else {
+        console.log('Insert error', error);
+      }
+    }
 }
 
 async function ingestMeetings() {
     const files = fs.readdirSync(MEETINGS_DIR);
 
     for(const file of files) {
-      if(!file.endsWith('.docx')) continue;
+      if(!file.endsWith('.docx')) {
+        continue;
+      }
 
       const filePath = path.join(MEETINGS_DIR, file);
       console.log(`Processing: ${file}`);
 
       const meeting = await extractText(filePath);
-      if(meeting === null) continue;
+      if(meeting === null) {
+        continue;
+      }
       const meta = parseMeetingMeta(meeting.meta);
-      console.log(meta.meeting_date);
+      //console.log(meta.meeting_date);
 
       insertMeeting(meta, meeting.transcript);
     }
