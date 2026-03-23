@@ -8,7 +8,8 @@
     "lint": "eslint .",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "ingest": "node app/scripts/ingest.js",
-    "listMeetings": "node app/scripts/listMeetings.js"
+    "listMeetings": "node app/scripts/listMeetings.js",
+    "generateMeetingNote": "node app/scripts/generateMeetingNote.js"
   },
   "jest": {
     "testEnvironment": "node"

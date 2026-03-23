@@ -1,9 +1,7 @@
-import { supabase } from './supabase.js'
+import { SupabaseService } from '../services/supabase.service.js'
 
 async function listMeetings() {
-    const {data, error} = await supabase
-        .from('meetings')
-        .select('id, title, meeting_date');
+    const {data, error} = await SupabaseService.getAllMeetings();
 
         if(error) {
             console.log(error); 

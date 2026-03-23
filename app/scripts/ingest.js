@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import mammoth from 'mammoth';
-import {supabase} from './supabase.js';
+import { SupabaseService } from '../services/supabase.service.js';
 
 
 const MEETINGS_DIR = path.join(process.cwd(), "transcripts");
@@ -54,14 +54,7 @@ export function chunkText(text, chunkSize = 1000) {
 }
 
 async function insertMeeting(meta, transcript) {
-  const {error} = await supabase
-    .from('meetings')
-    .insert({
-      title: meta.title,
-      meeting_date: meta.meeting_date,
-      source: meta.source,
-      raw_transcript: transcript
-    });
+  const {error} = await SupabaseService.insertMeeting(meta, transcript);
 
     if(error) {
       if(error.code === '23505') {
