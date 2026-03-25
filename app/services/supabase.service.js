@@ -11,8 +11,8 @@ export class SupabaseService {
      */
     static async getAllMeetings() {
         return supabase
-                .from('meetings')
-                .select('id, title, meeting_date');
+            .from('meetings')
+            .select('id, title, meeting_date');
     }
 
     /**
@@ -23,11 +23,22 @@ export class SupabaseService {
      */
     static async getMeeting(uuid) {
         return supabase
-                .from('meetings')
-                .select('id, raw_transcript')
-                .eq('id', uuid)
-                .limit(1)
-                .single();
+            .from('meetings')
+            .select('id, raw_transcript')
+            .eq('id', uuid)
+            .limit(1)
+            .single();
+    }
+
+    static async getMeetingsWithoutNote() {
+        return supabase
+            .from('meetings')
+            .select(`
+                    id,
+                    raw_transcript,
+                    notes( id )
+                `)
+            .is('notes', null);
     }
 
     static async insertMeeting(meta, transcript) {
@@ -41,11 +52,17 @@ export class SupabaseService {
             });
     }
 
-    static async insertNote() {
+    static async insertNote(note, meetingUUID, llmRaw) {
         return supabase
             .from('notes')
             .insert({
-
+                meeting_id: meetingUUID,
+                summary: note.summary,
+                action_items: note.action_items,
+                key_takeaways: note.key_takeaways,
+                topics: note.topics,
+                next_steps: note.next_steps,
+                llm_raw: llmRaw
             });
     }
 }
