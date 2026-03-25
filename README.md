@@ -121,6 +121,20 @@ To list meetings from supabase you can run listMeetings script:
 npm run listMeetings
 ```
 
+3. generateMeetingNote
+
+You can generate meeting note by entering meeting id or generate notes for all meetings, that doesn't have notes already. To generete note for specific meeting you have to specify `meeting id` as argument:
+
+```bash
+npm run generateMeetingNote [MEETING_ID]
+```
+
+To generate notes for all meetings that do not have notes run:
+
+```bash
+npm run generateMeetingNote
+```
+
 ## Run tests
    
 You can run tests:
