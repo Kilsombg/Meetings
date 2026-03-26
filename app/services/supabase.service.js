@@ -9,6 +9,7 @@ export class SupabaseService {
      * 
      * @returns
      */
+
     static async getAllMeetings() {
         return supabase
             .from('meetings')
@@ -30,6 +31,11 @@ export class SupabaseService {
             .single();
     }
 
+    /**
+     * Get all meetings that do not have notes.
+     * 
+     * @returns 
+     */
     static async getMeetingsWithoutNote() {
         return supabase
             .from('meetings')
@@ -40,7 +46,14 @@ export class SupabaseService {
                 `)
             .is('notes', null);
     }
-
+    
+    /**
+     * Insert meeting into database.
+     * 
+     * @param {*} meta - include title, meeting_date and source.
+     * @param {*} transcript - meeting raw transcript.
+     * @returns 
+     */
     static async insertMeeting(meta, transcript) {
         return supabase
             .from('meetings')
@@ -52,6 +65,14 @@ export class SupabaseService {
             });
     }
 
+    /**
+     * Insert meeting note.
+     * 
+     * @param {*} note
+     * @param {*} meetingUUID - meeting id.
+     * @param {*} llmRaw - raw response from LLM model.
+     * @returns 
+     */
     static async insertNote(note, meetingUUID, llmRaw) {
         return supabase
             .from('notes')

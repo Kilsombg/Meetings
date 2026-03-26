@@ -44,33 +44,12 @@ export function mergeChunkNotes(resultNotes) {
 }
 
 export function validateMeetingNote(mergedNote) {
-    if (!mergedNote?.action_items) {
+    if (!mergedNote?.action_items || mergedNote?.action_items.length === 0) {
         mergedNote.action_items.push({
             text: 'No action items detected in this meeting',
             owner: null,
             due_date: null
         });
-    }
-}
-
-async function generateStructuredNoteWithRetry(chunk, maxRetries = 5, baseDelay = 500) {
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-        try {
-            const response = await GroqService.generateStructuredNote(chunk);
-            if (response.status === 429) {
-                throw new Error(`Rate limit: ${response.status}`);
-            }
-            return response;
-        } catch (error) {
-            if (attempt === maxRetries) {
-                throw new Error(`Failed after ${maxRetries + 1} attempts: ${error.message}`);
-            }
-            const backoff = baseDelay * 2 ** attempt;
-            const jitter = Math.random() * 100;
-            const delay = backoff + jitter;
-            console.warn(`Attempt ${attempt + 1} failed. Retrying in ${delay.toFixed(0)}ms...`);
-            await new Promise((r) => setTimeout(r, delay));
-        }
     }
 }
 
@@ -83,7 +62,7 @@ async function generateLLMNote(transcript, uuid) {
         console.log(`Processing transcript chunk ${i + 1} / ${chunks.length} for meeting with id: ${uuid}.`);
 
         //console.log(chunk);
-        const response = await generateStructuredNoteWithRetry(chunk);
+        const response = await GroqService.generateStructuredNoteWithRetry(chunk);
         let result;
         try {
             const raw = response.choices[0].message.content || "{}";
@@ -101,7 +80,7 @@ async function generateLLMNote(transcript, uuid) {
         resultNotes.push(result);
     };
 
-    // merge chunks note results and insert it into database.
+    // merge chunks note results and validate it.
     const mergedNote = mergeChunkNotes(resultNotes);
     if (!mergedNote) {
         console.log('No notes generated.');
@@ -114,6 +93,8 @@ async function generateLLMNote(transcript, uuid) {
 
 async function generateNote(uuid, transcript) {
     const [meetingNote, llmRaw] = await generateLLMNote(transcript, uuid);
+
+    // insert meeting note if generated successfully.
     if (meetingNote) {
         console.log("Inseting meeting note!");
         await SupabaseService.insertNote(meetingNote, uuid, llmRaw);

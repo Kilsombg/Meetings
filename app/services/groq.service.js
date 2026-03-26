@@ -2,7 +2,19 @@ import Groq from "groq-sdk"
 
 const groq = new Groq();
 
+/**
+ * Service class using groq LLM models.
+ */
 export class GroqService {
+    /**
+     * Generate structured note from raw transcript from meeting.
+     * 
+     * Chunk meeting transcript if the size is over model limit.
+     * Better use generateStructuredNoteWithRetry() to not lose some transcripts chunks.
+     * 
+     * @param {string} transcript - meeting raw transcript. If transcript is too big, it is better to use chunks.
+     * @returns strict response from groq model.
+     */
     static async generateStructuredNote(transcript) {
         return groq.chat.completions.create({
             model: "openai/gpt-oss-20b",
@@ -69,5 +81,35 @@ export class GroqService {
                 }
             }
         })
+    }
+
+
+    /**
+     * Generate structured note from raw transcript from meeting with retry.
+     * 
+     * @param {*} chunk - meeting raw transcript chunk.
+     * @param {*} maxRetries - after maxRetries note generations stops and returns failure.
+     * @param {*} baseDelay - baseDelay to start from. Value is in [ms].
+     * @returns 
+     */
+    static async  generateStructuredNoteWithRetry(chunk, maxRetries = 5, baseDelay = 500) {
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                const response = await this.generateStructuredNote(chunk);
+                if (response.status === 429) {
+                    throw new Error(`Rate limit: ${response.status}`);
+                }
+                return response;
+            } catch (error) {
+                if (attempt === maxRetries) {
+                    throw new Error(`Failed after ${maxRetries + 1} attempts: ${error.message}`);
+                }
+                const backoff = baseDelay * 2 ** attempt;
+                const jitter = Math.random() * 100;
+                const delay = backoff + jitter;
+                console.warn(`Attempt ${attempt + 1} failed. Retrying in ${delay.toFixed(0)}ms...`);
+                await new Promise((r) => setTimeout(r, delay));
+            }
+        }
     }
 }
