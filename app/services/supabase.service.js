@@ -73,7 +73,7 @@ export class SupabaseService {
      * @param {*} llmRaw - raw response from LLM model.
      * @returns 
      */
-    static async insertNote(note, meetingUUID, llmRaw) {
+    static async insertNote(note, meetingUUID, llmRaw, llm) {
         return supabase
             .from('notes')
             .insert({
@@ -83,7 +83,8 @@ export class SupabaseService {
                 key_takeaways: note.key_takeaways,
                 topics: note.topics,
                 next_steps: note.next_steps,
-                llm_raw: llmRaw
+                llm_raw: llmRaw,
+                llm: llm
             });
     }
 }

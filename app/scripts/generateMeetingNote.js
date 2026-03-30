@@ -1,6 +1,6 @@
 import { SupabaseService } from "../services/supabase.service.js";
-import { GroqService } from "../services/groq.service.js";
 import { chunkTranscript } from "../helpers/TextFormatting.js";
+import { LLMFactory } from "../services/LLM/llm.factory.js";
 
 export function mergeChunkNotes(resultNotes) {
     if (!resultNotes || resultNotes.length <= 0) {
@@ -53,7 +53,7 @@ export function validateMeetingNote(mergedNote) {
     }
 }
 
-async function generateLLMNote(transcript, uuid) {
+async function generateLLMNote(transcript, uuid, llm) {
     // processing meeting into note.
     const chunks = chunkTranscript(transcript, 5000);
     const resultNotes = [];
@@ -62,7 +62,7 @@ async function generateLLMNote(transcript, uuid) {
         console.log(`Processing transcript chunk ${i + 1} / ${chunks.length} for meeting with id: ${uuid}.`);
 
         //console.log(chunk);
-        const response = await GroqService.generateStructuredNoteWithRetry(chunk);
+        const response = await LLMFactory.generateNote(llm, transcript);
         let result;
         try {
             const raw = response.choices[0].message.content || "{}";
@@ -91,17 +91,17 @@ async function generateLLMNote(transcript, uuid) {
     return [mergedNote, llmRaw];
 }
 
-async function generateNote(uuid, transcript) {
-    const [meetingNote, llmRaw] = await generateLLMNote(transcript, uuid);
+async function generateNote(uuid, transcript, llm) {
+    const [meetingNote, llmRaw] = await generateLLMNote(transcript, uuid, llm);
 
     // insert meeting note if generated successfully.
     if (meetingNote) {
         console.log("Inseting meeting note!");
-        await SupabaseService.insertNote(meetingNote, uuid, llmRaw);
+        await SupabaseService.insertNote(meetingNote, uuid, llmRaw, llm);
     }
 }
 
-async function generateMeetingNote(uuid) {
+export async function generateMeetingNote(uuid, llm) {
     const { data, error } = await SupabaseService.getMeeting(uuid);
 
     if (error) {
@@ -109,10 +109,10 @@ async function generateMeetingNote(uuid) {
         return;
     }
 
-    await generateNote(uuid, data.raw_transcript);
+    await generateNote(uuid, data.raw_transcript, llm);
 }
 
-async function generateAllMeetingWithoutNotes() {
+async function generateAllMeetingWithoutNotes(llm) {
     const { data, error } = await SupabaseService.getMeetingsWithoutNote();
     
     if (error) {
@@ -121,15 +121,16 @@ async function generateAllMeetingWithoutNotes() {
     }
 
     for(const m of data) {
-       await generateNote(m.id, m.raw_transcript);
+       await generateNote(m.id, m.raw_transcript, llm);
     }
 }
 
 async function generateNoteMain() {
+    const llm = "groq";
     if (process.argv.length > 2) {
-       await generateMeetingNote(process.argv[2]);
+       await generateMeetingNote(process.argv[2], llm);
     } else {
-        await generateAllMeetingWithoutNotes();
+        await generateAllMeetingWithoutNotes(llm);
     }
 
     console.log("Task completed!");
