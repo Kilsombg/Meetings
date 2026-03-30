@@ -1,6 +1,7 @@
 import { SupabaseService } from "../services/supabase.service.js";
 import { chunkTranscript } from "../helpers/TextFormatting.js";
-import { LLMFactory } from "../services/LLM/llm.factory.js";
+import { LangChainService } from "../services/LLM/langchain.service.js";
+import { UnsupportedLLMError } from "../exceptions/unsupportedLLMError.js";
 
 export function mergeChunkNotes(resultNotes) {
     if (!resultNotes || resultNotes.length <= 0) {
@@ -62,17 +63,18 @@ async function generateLLMNote(transcript, uuid, llm) {
         console.log(`Processing transcript chunk ${i + 1} / ${chunks.length} for meeting with id: ${uuid}.`);
 
         //console.log(chunk);
-        const response = await LLMFactory.generateNote(llm, transcript);
         let result;
         try {
-            const raw = response.choices[0].message.content || "{}";
-            if (raw !== "{}") {
-                llmRaw += " " + raw;
+            result = await LangChainService.generateStructuredNoteWithRetry(chunk, llm);
+            if (result !== "{}") {
+                llmRaw += " " + JSON.stringify(result);
             }
-            result = JSON.parse(raw);
-            //console.log(result);
         }
         catch (error) {
+            if(error instanceof UnsupportedLLMError) {
+                throw error;
+            }
+
             console.log(`Chunk ${i} failed parsing. LLM returned invalid JSON for meeting: ${uuid}`);
             continue;
         }
