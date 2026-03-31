@@ -3,6 +3,7 @@ import { meetingsRouter } from "./routers/meetings.js";
 
 const app = express();
 
+app.enable('trust proxy');
 app.use(express.json()); 
 app.use('/api/meetings', meetingsRouter);
 
